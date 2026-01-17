@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bridge With Monster</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .bridge-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .tile {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #16213e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #0f3460;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .player-tile { 
+            background-color: #3498db; 
+            border-color: #fff;
+            box-shadow: 0 0 15px #3498db;
+        }
+
+        .monster-tile { 
+            background-color: #e74c3c; 
+            border-color: #fff;
+            box-shadow: 0 0 15px #e74c3c;
+        }
+
+        h1 { font-size: 3rem; margin-bottom: 10px; }
+        #msg { font-size: 1.5rem; height: 1.6em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        
+        /* Controll */
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-row { display: flex; gap: 10px; }
+
+        button {
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+
+        button:disabled { background: #555 !important; cursor: not-allowed; }
+
+        .move-btn { background: #e94560; }
+        .dice-btn { background: orange; color: black; }
+        .restart-btn { background: #2121cf; width: 100%; margin-top: 5px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="welcome-screen" class="container">
+        <h1>Nearby Monster On The Bridge"´ཀ`"</h1>
+        <p>Don't let the monster catch you.</p>
+
+        <h3>Rules Are Simple</h3>
+        <ul style="text-align: left; max-width: 400px; margin-bottom: 30px;">
+            <li>Move 1 or 2 tiles at a time.</li>
+            <li>Roll the Risk Dice to jump 4 or 6 tiles, but theres a chance of getting killed!</li>
+            <li>Reach tile 10 to survive.</li>
+            <li>If you land on the monster's tile, it's game over!
+        </li>
+
+        <button onclick="startGame()" style="padding: 20px 40px; font-size: 1.5rem; background: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer;">START MISSION</button>
+    </div>
+
+    <div id="game-screen" class="container hidden">
+        <p id="msg">Mission Start!</p>
+        
+        <div class="bridge-container" id="bridge-visual"></div>
+
+        <!-- buttons to wher u want to move -->
+        <div class="controls">
+            <div class="btn-row">
+                <button class="move-btn" id="btn1" onclick="move(1)">Move 1</button>
+                <button class="move-btn" id="btn2" onclick="move(2)">Move 2</button>
+            </div>
+            
+            <button class="dice-btn" id="btn3" onclick="rollDice()">🎲 Risk Dice (4 or 6 Steps) or <span style="color: red;">Get Killed</span></button>
+            
+            <button class="restart-btn" onclick="resetGame()">🔄 Restart Game</button>
+        </div>
+
+        <p style="font-size: 1.2rem; margin-top: 20px;">Location: Tile <b><span id="pos">0</span> / 10</b></p>
+    </div>
+
+    <script>
+        let currentPos = 0; // Player current position
+        let monsterTile = 7; // Monster position)
+
+        // function to start the game
+       function startGame() {
+            document.getElementById("welcome-screen").classList.add("hidden");
+            document.getElementById("game-screen").classList.remove("hidden");
+            resetGame();
+        }
+
+        function Bridge() {
+            const container = document.getElementById("bridge-visual");
+            container.innerHTML = ""; 
+
+            for (let Box = 1; Box <= 10; Box++) {
+                const tile = document.createElement("div");
+                tile.className = "tile";
+
+                if (Box === currentPos) {
+                    if (Box === monsterTile) {
+                        tile.classList.add("monster-tile");
+                        tile.innerText = "´ཀ`";
+                    } else {
+                        tile.classList.add("player-tile");
+                        tile.innerText = "🏃🏻‍♀️‍➡️";
+                    }
+                }
+                container.appendChild(tile);
+            }
+        }
+    
+        // To Move the player
+        function move(steps) {
+            currentPos = currentPos + steps;
+            checkGame();
+
+        document.getElementById("msg").innerText = "You moved " + steps + " step" + (steps   > 1 ? "s" : "") + "!";
+        checkGame();
+
+        }
+
+        function rollDice() {
+            if (Math.random() < 0.5 ) {
+                document.getElementById("msg").innerText = "DICE TRAP!";
+                currentPos = monsterTile; 
+                checkGame();
+            } else {
+                let roll = Math.random() < 0.8 ? 4 : 6;
+                currentPos = currentPos + roll;
+                document.getElementById("msg").innerText = "LUCKY! Jumped " + roll;
+                checkGame();
+            }
+        }
+
+        function checkGame() {
+            document.getElementById("pos").innerText = currentPos;
+            Bridge();
+ 
+            if (currentPos === monsterTile) {
+                document.getElementById("msg").innerText = "GAME OVER!";
+                document.getElementById("msg").style.color = "#ff4d4d";
+                disableMovement(true);
+            } 
+            else if (currentPos >= 10) {
+                document.getElementById("msg").innerText = "YOU SURVIVED!";
+                document.getElementById("msg").style.color = "#4CAF50";
+                disableMovement(true);
+            }
+        }
+
+        function disableMovement(Disabler) {
+            document.getElementById("btn1").disabled = Disabler;
+            document.getElementById("btn2").disabled = Disabler;
+            document.getElementById("btn3").disabled = Disabler;
+        }
+
+        function resetGame() {
+            currentPos = 0;
+            // Randomize monster again
+            monsterTile = Math.floor(Math.random() * 7) + 4; 
+            
+            document.getElementById("msg").innerText = "Be careful (Always remember the rules) ";
+            document.getElementById("msg").style.color = "white";
+            document.getElementById("pos").innerText = "0";
+            
+            // Re-enable movement
+            disableMovement(false);
+            Bridge();
+        }
+    </script>
+</body>
+</html>
